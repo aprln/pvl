@@ -1,0 +1,106 @@
+#!/usr/bin/php
+<?php
+
+error_reporting(E_ERROR | E_PARSE);
+
+/**
+ * @param  string  $file
+ *
+ * @return array
+ */
+function processCsvFile(string $file): array
+{
+    if (($handle = fopen($file, "r")) === false) {
+        die("Cannot open the file '$file'!\n");
+    }
+
+    $delimiter = ',';
+    $length = 100;
+    $headers = fgetcsv($handle, $length, $delimiter);
+
+    $rows = [];
+    while ($row = fgetcsv($handle, $length, $delimiter)) {
+        if (!($rows[] = array_combine($headers, $row))) {
+            die("Invalid file encountered!\n");
+        }
+    }
+
+    fclose($handle);
+
+    return $rows;
+}
+
+/**
+ * @param  array  $rows
+ * @param  string  $filePath
+ *
+ * @return void
+ */
+function writeToXmlFile(array $rows, string $filePath): void
+{
+    $xml = new SimpleXMLElement('<root/>');
+    foreach ($rows as $row) {
+        $rowXml = $xml->addChild('row');
+        array_walk_recursive(array_flip($row), [$rowXml, 'addChild']);
+    }
+
+    $fh = null;
+    if (!file_exists($filePath)) {
+        ($fh = fopen($filePath, 'w')) || die("Cannot create the file '$filePath'!\n");
+    }
+
+    $xml->asXML($filePath);
+
+    if ($fh) {
+        fclose($fh);
+    }
+}
+
+/**
+ * @param  array  $rows
+ * @param  string  $filePath
+ *
+ * @return void
+ */
+function writeToJsonFile(array $rows, string $filePath): void
+{
+    $handle = fopen($filePath, 'w');
+    fwrite($handle, json_encode($rows, JSON_UNESCAPED_SLASHES));
+    fclose($handle);
+}
+
+/**
+ * @param  string  $convertType
+ * @param  string  $srcFilePath
+ */
+function run(string $convertType, string $srcFilePath): void
+{
+    $rows = processCsvFile($srcFilePath);
+
+    if (!file_exists('output')) {
+        mkdir('output');
+    }
+
+    $destFilePath = '';
+    switch ($convertType) {
+        case 'xml':
+            $destFilePath = 'output/data.xml';
+            writeToXmlFile($rows, $destFilePath);
+            break;
+        case 'json':
+            $destFilePath = 'output/data.json';
+            writeToJsonFile($rows, $destFilePath);
+            break;
+        default:
+            echo "Invalid conversion type '$convertType'! Must be 'xml' or 'json'.\n";
+            break;
+    }
+
+    if (!empty($destFilePath)) {
+        echo "Done! Check out the result file at '$destFilePath'.\n";
+    }
+
+}
+
+$argc == 3 || die("Invalid number of arguments \n");
+run($argv[1], $argv[2]);
