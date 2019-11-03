@@ -67,7 +67,6 @@ Note:
 - The solution is designed for image of size 250x250px based on data in the CSV example. 
 I planned to make the image size configurable but ran out of time.
 - I use Quasar components and style to assist with elements other than the carousel.
-- I assumed the "id" for each record returned by the API is unique.
 
 To improve:
 
