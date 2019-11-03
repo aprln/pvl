@@ -25,10 +25,9 @@ discount_percentage being a number between 1 and 100 etc.. are needed
 # API
 
 
-First, the json data file `data.json` needs to be copied to 
+The API serves content of the json data file `data.json` at 
 
 `pvl/api/storage/app/data.json`
-    
 
 To serve the application at http://localhost:8000, run
 
